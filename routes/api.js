@@ -113,14 +113,16 @@ module.exports = function (app) {
       }
 
        if (Object.keys(update).length === 0) {
-        res.json({ error: "no update field(s) sent", _id: _id });
-        return;
-      }
+    res.json({ error: "no update field(s) sent", _id: _id });
+    return;
+  }
       update.updated_on = new Date()
 
       Project.findByIdAndUpdate(_id, update, {new: true}, (err, updatedIssues) => {
         if(err) {
           res.json({ error: "could not update", _id: _id });
+        } else if(!updatedIssues) {
+          res.send({ error: "could not update", _id: _id });
         } else {
           res.json({ result: 'successfully updated', _id: _id })
         }
@@ -138,7 +140,7 @@ module.exports = function (app) {
         if (err) {
           res.json({ error: 'could not delete', _id: _id });
         } else if (!deletedIssues) {
-          res.json({ error: 'issue not found', _id: _id });
+          res.json({ error: 'could not delete', _id: _id });
         } else {
           res.json({ result: 'successfully deleted', _id: _id });
         }

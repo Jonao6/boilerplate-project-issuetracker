@@ -2,9 +2,8 @@ const chaiHttp = require('chai-http');
 const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
-
 chai.use(chaiHttp);
-
+let deleteID;
 suite('Functional Tests', function() {
   suite('POST /api/issues/{project} => object with issue data', () => {
     test('Create an issue with every field: POST request to /api/issues/{project}', (done) => {
@@ -20,6 +19,7 @@ suite('Functional Tests', function() {
       })
         .end((err, res) => {
         assert.equal(res.status, 200);
+       deleteID = res.body._id
         assert.equal(res.body.issue_title, "Test");
         assert.equal(res.body.issue_text, "Functional Test");
         assert.equal(res.body.created_by, "FCC");
@@ -76,7 +76,7 @@ suite('Functional Tests', function() {
       .get("/api/issues/fcc-project")
       .end((err, res) => {
         assert.equal(res.status, 200);
-        assert.equal(res.body.length, 27);
+        assert.equal(res.body.length, 98);
         done()
       })
     })
@@ -89,7 +89,19 @@ suite('Functional Tests', function() {
       })
       .end((err, res) => {
         assert.equal(res.status, 200);
-        assert.deepEqual(res.body[0]._id, "648b6c3b72943a229dc13f95");
+        assert.deepEqual(res.body[0], {
+        _id: '648b6c3b72943a229dc13f95', 
+        assigned_to: "Chai and Mocha",
+        open: true,
+        status_text: "",
+        issue_title: "Faux Issue Title 2",
+        issue_text: "Functional Test - Every field filled in",
+        created_by: "fCC",
+        created_on: '2023-06-15T19:53:31.403Z',
+        project: "fcc-project",
+        updated_on: '2023-06-15T19:53:31.404Z',
+        __v: 0
+        });
         done()
       })
     });
@@ -130,7 +142,7 @@ suite('Functional Tests', function() {
       .keepOpen()
       .put("/api/issues/projects")
       .send({
-        _id: "648b71d439cb2136c8280cda",
+        _id: "648b71d339cb2136c8280cd7",
         assigned_to: "Filled",
         issue_title: "Updated",
         issue_text: "Functional Test2",
@@ -140,7 +152,7 @@ suite('Functional Tests', function() {
       .end((err, res) => {
         assert.equal(res.status, 200);
         assert.equal(res.body.result, "successfully updated");
-        assert.equal(res.body._id, "648b71d439cb2136c8280cda");
+        assert.equal(res.body._id, "648b71d339cb2136c8280cd7");
         done()
       })
     });
@@ -188,12 +200,13 @@ suite('Functional Tests', function() {
     });
   });
   suite('DELETE /api/issues/{project} => object with issue data', () => {
+    
     test('Delete an issue: DELETE request to /api/issues/{project}', (done) => {
       chai.request(server)
       .keepOpen()
       .delete("/api/issues/projects")
       .send({
-        _id: "648b720a276f2437fab51255"
+        _id: deleteID
       })
       .end((err, res) => {
         assert.equal(res.status, 200);
@@ -226,4 +239,9 @@ suite('Functional Tests', function() {
       })
     })
   })
+});
+
+after(function() {
+  chai.request(server)
+    .get('/')
 });
